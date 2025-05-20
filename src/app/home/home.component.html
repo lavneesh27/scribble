@@ -1,0 +1,22 @@
+<div class="container home-container">
+    <button class="btn btn-primary mb-3" (click)="openModal('create')">Create Room</button>
+    <button class="btn btn-secondary" (click)="openModal('join')">Join Room</button>
+</div>
+
+<ng-template #modalTemplate>
+  <div class="modal-body">
+    <h4 *ngIf="modalType === 'create'">Create Room</h4>
+    <h4 *ngIf="modalType === 'join'">Join Room</h4>
+
+    <form *ngIf="modalType === 'create'" (ngSubmit)="submitCreateRoom()">
+      <input type="text" class="form-control mb-2"  name="createRoomName" placeholder="Room Name" required />
+      <button type="submit" class="btn btn-success">Create</button>
+    </form>
+
+    <form *ngIf="modalType === 'join'" (ngSubmit)="submitJoinRoom()">
+      <input type="text" class="form-control mb-2" name="joinRoomId" placeholder="Room ID" required />
+      <input type="text" class="form-control mb-2"  name="username" placeholder="Username" required />
+      <button type="submit" class="btn btn-info text-light">Join</button>
+    </form>
+  </div>
+</ng-template>
