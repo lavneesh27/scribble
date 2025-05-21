@@ -1,4 +1,59 @@
-<div class="container mt-5">
-  <ng-whiteboard #whiteboard class="whiteboard" [options]="whiteboardOptions"></ng-whiteboard>
-  <button class="btn btn-primary mt-2" (click)="clear()">Clear</button>
+<div class="container-fluid">
+  <div class="info my-3">
+    <p>Player Name: <strong>{{ userName }}</strong></p>
+    <p>Room ID: <strong>{{ room.roomId }}</strong></p>
+    <p>Room Name: <strong>{{ room.roomName }}</strong></p>
+  </div>
+  <div class="row">
+    <div class="players-container col-3">
+      <h5>Players</h5>
+      <div *ngIf="!room.players?.length" class="mt-5 text-center text-muted fst-italic">
+        No players to show
+      </div>
+      <ul *ngIf="room.players?.length" class="list-group">
+        <ng-container *ngFor="let player of room.players">
+          <li class="list-group-item fw-bold"> {{player.userName}}
+            {{player.userName===userName? '(You)':''}}</li>
+        </ng-container>
+      </ul>
+    </div>
+    <div class="whiteboard col-6">
+      <h5>Draw</h5>
+      <ng-whiteboard #whiteboard [options]="whiteboardOptions"></ng-whiteboard>
+      <div class="custom-btn-grp">
+        <button class="btn btn-dark mt-2 me-2" (click)="whiteboardService.clear()" title="Clear">
+          <i class='bx bx-brush-alt fs-4'></i>
+        </button>
+        <button class="btn btn-outline-dark mt-2 me-2" (click)="whiteboardService.undo()" title="Undo">
+          <i class='bx bx-undo fs-4'></i>
+        </button>
+        <button class="btn btn-outline-dark mt-2" (click)="whiteboardService.redo()" title="Redo">
+          <i class='bx bx-redo fs-4'></i>
+        </button>
+      </div>
+    </div>
+    <div class="chat-container col-3">
+      <h5>Chats</h5>
+      <div class="chatbox border flex-grow-1">
+        <div *ngIf="!room.players?.length" class="mt-5 text-center text-muted fst-italic">
+          No players to show
+        </div>
+        <ul *ngIf="chats.length">
+          <ng-container *ngFor="let chat of chats">
+            <li>
+              <span class="fw-bold">{{ chat.player.userName }} {{chat.player.userName===userName? '(You)':''}}</span> : {{ chat.text }}
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+      <div class=" mt-2">
+        <form #chatForm="ngForm" (ngSubmit)="send(chatForm)" class="input-ctnr d-flex">
+          <input type="text" class="form-control me-2" (keypress.enter)="send(chatForm)" name="text" required ngModel>
+          <button class="btn btn-dark" type="submit" title="Send">
+            <i class='bx bx-send'></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
