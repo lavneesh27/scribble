@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgWhiteboardComponent, WhiteboardOptions } from 'ng-whiteboard';
 import { NgWhiteboardService } from 'ng-whiteboard';
 import { ScribbleService } from '../service/scribble.service';
@@ -8,6 +8,8 @@ import { Room } from '../models/room.model';
 import { Chat } from '../models/chat.model';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Player } from '../models/player.model';
+import { words } from '../models/words.data';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-board',
@@ -17,7 +19,9 @@ import { Player } from '../models/player.model';
   styleUrl: './board.component.scss'
 })
 export class BoardComponent {
-  constructor(public whiteboardService: NgWhiteboardService, private route: ActivatedRoute, private service: ScribbleService) { }
+  constructor(public whiteboardService: NgWhiteboardService, private route: ActivatedRoute, private service: ScribbleService, private navigator: Router,
+    private toastr: ToastrService
+  ) { }
   userName: string | null = '';
   userId: number | null = null;
   room: Room = new Room();
@@ -28,6 +32,8 @@ export class BoardComponent {
   };
   chats: Chat[] = [];
   chat: Chat = new Chat();
+  drawData: any;
+  guessingWord: string = '';
   @ViewChild('whiteboard') whiteboard!: NgWhiteboardComponent;
   ngOnInit() {
     if (sessionStorage.getItem('userName')) {
@@ -35,6 +41,7 @@ export class BoardComponent {
       this.userId = Number(sessionStorage.getItem('userId'));
     } else {
       alert('User does not exist, please re-enter the room');
+      this.navigator.navigate(['home']);
       return;
     }
     this.room.roomId = this.route.snapshot.paramMap.get('roomId') ?? '';
@@ -44,6 +51,7 @@ export class BoardComponent {
         next: (res: any) => this.room = res,
         error: () => {
           alert('Room does not exist, please create new one');
+          this.navigator.navigate(['home']);
           return;
         }
       });
@@ -54,32 +62,87 @@ export class BoardComponent {
     }
     this.service.newChat$.subscribe((chat: Chat | null) => {
       if (chat) this.chats.push(chat);
+      else this.chats = [];
     })
     this.service.newPlayer$.subscribe((player: Player | null) => {
-      if (player) this.room.players.push(player);
+      if (player && !this.room.players.find(p => p.id === player.id)) this.room.players.push(player);
     })
+    this.service.matchStartData$.subscribe((roomId: string | null) => {
+      if (this.room.roomId == roomId) {
+        this.room.players.forEach(p => p.points = 0);
+      };
+    })
+    this.service.drawData$.subscribe((res: any) => {
+      if (res && this.room.roomId === res[1]) {
+        this.drawData = JSON.parse(res[0]);
+      }
+    })
+    this.service.removePlayer$.subscribe((playerId: number | null) => {
+      if (playerId && (this.room.players as any[]).some(e => e.id === playerId)) {
+        this.room.players = this.room.players.filter(p => p.id !== playerId);
+        this.service.removePlayer(playerId).subscribe();
+      }
+    });
   }
-
   clear() {
     this.whiteboardService.clear();
   }
   send(chatForm: NgForm) {
     if (this.userId && chatForm.valid) {
+      let guessed = chatForm.value.text.toLowerCase() === this.guessingWord.toLowerCase();
       const chat: Chat = {
         playerId: this.userId,
         roomId: this.room.roomId,
-        text: chatForm.value.text
+        text: guessed ? `${this.userName} guessed the word!` : chatForm.value.text,
+        guessed: guessed
       } as Chat;
-      const player: Player = {
-        id: 0,
-        roomId: this.room.roomId,
-        userName: this.userName
-      } as Player;
 
-      this.service.sendChat(chat).subscribe(() => {
-        this.service.hubConnection.invoke('SendMessage', player, chat.text);
+      this.service.sendChat(chat).subscribe((ch: any) => {
+        const player: Player = {
+          id: ch.playerId,
+          roomId: ch.roomId,
+          userName: this.userName
+        } as Player;
+        if (guessed) {
+          this.toastr.success('+1 pt', `${this.userName} guessed the word!`);
+          ch.text = `${this.userName} guessed the word!`;
+           const player = this.room.players.find(p => p.id === ch.playerId);
+            if (player) player.points += 1;
+        }
+        this.service.hubConnection.invoke('SendMessage', player, ch);
         chatForm.reset();
       })
     }
+  }
+  copy() {
+    navigator.clipboard.writeText(this.room.roomId);
+    alert("Room ID copied to clipboard");
+  }
+  saveDraw() {
+    setTimeout(() => {
+      this.service.hubConnection.invoke('Draw', JSON.stringify(this.drawData), this.room.roomId);
+    });
+  }
+  modify(method: 'undo' | 'redo' | 'clear') {
+    if (method === 'undo') {
+      this.whiteboardService.undo();
+    } else if (method === 'redo') {
+      this.whiteboardService.redo();
+    } else {
+      this.whiteboardService.clear();
+    }
+    setTimeout(() => {
+      this.service.hubConnection.invoke('Draw', JSON.stringify(this.drawData), this.room.roomId);
+    }, 100);
+  }
+  matchStarted: boolean = false;
+  start() {
+    this.matchStarted = true;
+    this.guessingWord = words[Math.floor(Math.random() * words.length)];
+    this.room.players.forEach(p => p.points = 0);
+    this.service.resetPoints(this.room.roomId).subscribe();
+    this.service.hubConnection.invoke('SendMessage', null, null);
+    this.service.clearChats(this.room.roomId).subscribe();
+    this.modify('clear');
   }
 }

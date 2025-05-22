@@ -3,7 +3,7 @@ import { Injectable } from "@angular/core";
 import { Room } from "../models/room.model";
 import { Player } from "../models/player.model";
 import { Chat } from "../models/chat.model";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import * as signalR from '@microsoft/signalr';
 
 @Injectable({
@@ -16,6 +16,12 @@ export class ScribbleService {
     newChat$ = this.newChatSubject.asObservable();
     private newPlayerSubject = new BehaviorSubject<Player | null>(null);
     newPlayer$ = this.newPlayerSubject.asObservable();
+    private removePlayerSubject = new BehaviorSubject<number | null>(null);
+    removePlayer$ = this.removePlayerSubject.asObservable();
+    private drawDataSubject = new BehaviorSubject<[string, string] | null>(null);
+    drawData$ = this.drawDataSubject.asObservable();
+    private matchStartSubject = new BehaviorSubject<string | null>(null);
+    matchStartData$ = this.matchStartSubject.asObservable();
     baseUrl: string = 'https://localhost:7102/api/Room/';
     constructor(private http: HttpClient) {
         this.hubConnection = new signalR.HubConnectionBuilder()
@@ -24,19 +30,30 @@ export class ScribbleService {
             .build();
         this.hubConnection.start().catch(console.error);
 
-        this.hubConnection.on('ReceiveMessage', (player, message) => {
-            const chat = {
+        this.hubConnection.on('SendMessage', (player, chatDto) => {
+            const chat = chatDto ? {
                 id: 0,
-                text: message,
-                playerId: player.id,
-                roomId: player.roomId,
-                player: { userName: player.userName }
-            } as Chat;
+                text: chatDto.text,
+                playerId: player?.id,
+                roomId: player?.roomId,
+                player: { userName: player?.userName },
+                guessed: chatDto.guessed
+            } as Chat : null;
 
             this.newChatSubject.next(chat);
         });
+
         this.hubConnection.on('JoinPlayer', (player) => {
             this.newPlayerSubject.next(player);
+        });
+        this.hubConnection.on('RemovePlayer', (playerId) => {
+            this.removePlayerSubject.next(playerId);
+        });
+        this.hubConnection.on('Draw', (drawData, roomId) => {
+            this.drawDataSubject.next([drawData, roomId]);
+        });
+        this.hubConnection.on('MatchStart', (roomId) => {
+            this.matchStartSubject.next(roomId);
         });
     }
     createRoom(name: string) {
@@ -58,9 +75,19 @@ export class ScribbleService {
     sendChat(chat: Chat) {
         return this.http.post(this.baseUrl + 'sendChat', chat);
     }
+    removePlayer(id: number) {
+        return this.http.delete(this.baseUrl + 'removePlayer/' + id);
+    }
     checkNameExist(roomId: string, userName: string) {
         return this.http.get<boolean>(this.baseUrl + 'checkNameExists', {
             params: { roomId, userName }
         })
+    }
+    clearChats(roomId: string) {
+        return this.http.delete(this.baseUrl + 'deleteChats/' + roomId);
+    }
+
+    resetPoints(roomId: string){
+        return this.http.get(this.baseUrl + 'resetPoints/' + roomId);
     }
 }

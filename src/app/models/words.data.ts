@@ -1,0 +1,22 @@
+export const words: string[] = [
+    "Apple", "River", "Chair", "Planet", "Window", "Engine", "Candle", "Bridge", "Guitar", "Bottle",
+    "Carpet", "Camera", "Castle", "Cloud", "Computer", "Door", "Eagle", "Flower", "Forest", "Garden",
+    "Hat", "Ice", "Island", "Jacket", "Jewel", "Key", "Knife", "Ladder", "Lamp", "Leaf",
+    "Library", "Mirror", "Moon", "Mountain", "Nest", "Ocean", "Oven", "Painting", "Paper", "Pencil",
+    "Phone", "Pillow", "Pocket", "Radio", "Rainbow", "Road", "Robot", "Rock", "Roof", "Room",
+    "Rope", "Sand", "School", "Shadow", "Ship", "Shirt", "Shoe", "Snake", "Snow", "Soap",
+    "Spoon", "Star", "Stone", "Street", "Sun", "Table", "Tank", "Tent", "Tiger", "Tire",
+    "Tool", "Tooth", "Tower", "Train", "Tree", "Truck", "Tunnel", "Umbrella", "Van", "Vase",
+    "Volcano", "Wall", "Watch", "Water", "Whistle", "Wheel", "Wind", "Worm", "Yard", "Yarn",
+    "Zebra", "Zoo", "Cup", "Drum", "Ball", "Fan", "Box", "Note", "Map", "Ring",
+    "Bag", "Basket", "Bench", "Book", "Bread", "Brush", "Cabin", "Cage", "Chain", "Cheese",
+    "Clock", "Coat", "Coin", "Corn", "Crayon", "Desk", "Dust", "Feather", "Fence", "Fire",
+    "Flag", "Floor", "Fork", "Frame", "Frog", "Glass", "Glove", "Hammer", "Hill", "Horse",
+    "House", "Ink", "Jar", "Kite", "Lake", "Leaflet", "Light", "Match", "Meat", "Milk",
+    "Mirror", "Mouse", "Nail", "Needle", "Net", "Pan", "Pants", "Path", "Pen", "Piano",
+    "Plant", "Plate", "Plug", "Pool", "Pot", "Pump", "Rabbit", "Racket", "Ring", "Rug",
+    "Scarf", "Scissors", "Screw", "Seed", "Shelf", "Shell", "Shovel", "Sink", "Skate", "Sled",
+    "Slide", "Sock", "Spade", "Sponge", "Spring", "Stamp", "Stew", "Stick", "Stool", "Suit",
+    "Swing", "Sword", "Towel", "Tray", "Trophy", "Tub", "Tunnel", "Twig", "Typewriter", "Vacuum",
+    "Veil", "Vest", "Wallet", "Web", "Whip", "Wire", "Wrench", "Yoke", "Zip", "Zoo"
+]

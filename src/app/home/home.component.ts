@@ -4,6 +4,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
 import { ScribbleService } from '../service/scribble.service';
 import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-home',
@@ -18,8 +19,13 @@ export class HomeComponent {
   createRoomName: any;
   joinRoomId: any;
   username: any;
-  constructor(private modalService: NgbModal, private service: ScribbleService, private route: Router) { }
+  constructor(private modalService: NgbModal, private service: ScribbleService, private route: Router, private toastr: ToastrService) { }
   ngOnInit(){
+    let playerId = sessionStorage.getItem('userId');
+    if(playerId){
+      this.service.hubConnection.invoke('RemovePlayer', Number(playerId));
+      this.service.removePlayer(Number(playerId)).subscribe();
+    }
     sessionStorage.clear();
   }
   openModal(type: 'create' | 'join') {
@@ -40,7 +46,7 @@ export class HomeComponent {
       } else {
         this.service.checkNameExist(form.value?.roomId, form.value?.userName).subscribe(res => {
           if (res) {
-            alert("This username is taken, please choose a different name");
+            alert("This username is taken for that room, please choose a different name");
             return;
           }
           this.service.joinRoom(form.value?.roomId, form.value?.userName).subscribe({
@@ -51,6 +57,7 @@ export class HomeComponent {
               sessionStorage.setItem('userId', player.id);
               this.route.navigate(['/board', player.roomId]);
               this.service.hubConnection.invoke('JoinPlayer', player);
+              this.toastr.success(`Successfully Joined the room ${player.roomId}`);
             },
             error: (err) =>{
               alert('Given RoomID not found, please create new one');

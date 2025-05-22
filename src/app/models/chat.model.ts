@@ -6,4 +6,5 @@ export class Chat {
     playerId: number = 0;
     roomId: string = '';
     player: Player = new Player();
+    guessed: boolean = false;
 }
