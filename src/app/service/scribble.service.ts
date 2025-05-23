@@ -20,8 +20,10 @@ export class ScribbleService {
     removePlayer$ = this.removePlayerSubject.asObservable();
     private drawDataSubject = new BehaviorSubject<[string, string] | null>(null);
     drawData$ = this.drawDataSubject.asObservable();
-    private matchStartSubject = new BehaviorSubject<string | null>(null);
+    private matchStartSubject = new BehaviorSubject<[string, boolean, string] | null>(null);
     matchStartData$ = this.matchStartSubject.asObservable();
+    private incrementSubject = new BehaviorSubject<[string, number] | null>(null);
+    incrementData$ = this.incrementSubject.asObservable();
     baseUrl: string = 'https://localhost:7102/api/Room/';
     constructor(private http: HttpClient) {
         this.hubConnection = new signalR.HubConnectionBuilder()
@@ -52,8 +54,11 @@ export class ScribbleService {
         this.hubConnection.on('Draw', (drawData, roomId) => {
             this.drawDataSubject.next([drawData, roomId]);
         });
-        this.hubConnection.on('MatchStart', (roomId) => {
-            this.matchStartSubject.next(roomId);
+        this.hubConnection.on('MatchStart', (roomId, started, wordIdx) => {
+            this.matchStartSubject.next([roomId, started, wordIdx]);
+        });
+        this.hubConnection.on('Increment', (roomId, userId) => {
+            this.incrementSubject.next([roomId, userId]);
         });
     }
     createRoom(name: string) {
@@ -87,7 +92,10 @@ export class ScribbleService {
         return this.http.delete(this.baseUrl + 'deleteChats/' + roomId);
     }
 
-    resetPoints(roomId: string){
+    resetPoints(roomId: string) {
         return this.http.get(this.baseUrl + 'resetPoints/' + roomId);
+    }
+    increment(roomId: string, userId: number) {
+        return this.http.get(this.baseUrl + 'increment/' + roomId + '/' + userId);
     }
 }

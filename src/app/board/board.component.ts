@@ -67,14 +67,35 @@ export class BoardComponent {
     this.service.newPlayer$.subscribe((player: Player | null) => {
       if (player && !this.room.players.find(p => p.id === player.id)) this.room.players.push(player);
     })
-    this.service.matchStartData$.subscribe((roomId: string | null) => {
-      if (this.room.roomId == roomId) {
+    this.service.matchStartData$.subscribe((res: any | null) => {
+      if (this.room.roomId === res[0]) {
+        this.matchStarted = res[1];
         this.room.players.forEach(p => p.points = 0);
-      };
-    })
+        if (res[1]) this.guessingWord = words[res[2]];
+        else {
+          const player = this.room.players.reduce((a: any, b: any) => a.points > b.points ? a : b);
+          alert(`${player.userName} has win this match!`);
+          this.guessingWord = ''
+        }
+        this.service.resetPoints(this.room.roomId).subscribe();
+        this.service.hubConnection.invoke('SendMessage', null, null);
+        this.service.clearChats(this.room.roomId).subscribe();
+        this.modify('clear');
+      }
+    });
+
     this.service.drawData$.subscribe((res: any) => {
       if (res && this.room.roomId === res[1]) {
         this.drawData = JSON.parse(res[0]);
+      }
+    })
+    this.service.incrementData$.subscribe((res: any) => {
+      if (res && this.room.roomId === res[0] && this.room.players.some(e => e.id == res[1])) {
+        let player = this.room.players.find(e => e.id == res[1]);
+        if (player) {
+          player.points++;
+          this.service.increment(player.roomId, player.id).subscribe();
+        }
       }
     })
     this.service.removePlayer$.subscribe((playerId: number | null) => {
@@ -106,8 +127,10 @@ export class BoardComponent {
         if (guessed) {
           this.toastr.success('+1 pt', `${this.userName} guessed the word!`);
           ch.text = `${this.userName} guessed the word!`;
-           const player = this.room.players.find(p => p.id === ch.playerId);
-            if (player) player.points += 1;
+          const player = this.room.players.find(p => p.id === ch.playerId);
+          if (player) {
+            this.service.hubConnection.invoke('Increment', player.roomId, player.id);
+          }
         }
         this.service.hubConnection.invoke('SendMessage', player, ch);
         chatForm.reset();
@@ -136,13 +159,7 @@ export class BoardComponent {
     }, 100);
   }
   matchStarted: boolean = false;
-  start() {
-    this.matchStarted = true;
-    this.guessingWord = words[Math.floor(Math.random() * words.length)];
-    this.room.players.forEach(p => p.points = 0);
-    this.service.resetPoints(this.room.roomId).subscribe();
-    this.service.hubConnection.invoke('SendMessage', null, null);
-    this.service.clearChats(this.room.roomId).subscribe();
-    this.modify('clear');
+  start(status: 'Start' | 'End') {
+    this.service.hubConnection.invoke('MatchStart', this.room.roomId, status === 'Start', Math.floor(Math.random() * words.length));
   }
 }

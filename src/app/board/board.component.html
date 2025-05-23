@@ -28,7 +28,7 @@
         (drawEnd)="saveDraw()"></ng-whiteboard>
       <div class="custom-btn-grp">
         <button class="btn btn-dark mt-2 me-2" (click)="modify('clear')" title="Clear">
-          <i class='bx bx-brush-alt fs-4'></i>
+          <i class='bx bx-brush fs-4'></i>
         </button>
         <button class="btn btn-outline-dark mt-2 me-2" (click)="modify('undo')" title="Undo">
           <i class='bx bx-undo fs-4'></i>
@@ -38,7 +38,7 @@
         </button>
       </div>
       <div class="text-center mt-2">
-        <button class="btn btn-outline-dark" (click)="start()">Start</button>
+        <button class="btn btn-outline-dark" (click)="start(matchStarted?'End':'Start')">{{ matchStarted?'End':'Start'}}</button>
       </div>
     </div>
     <div class="chat-container col-3">
@@ -58,7 +58,7 @@
       </div>
       <div class=" mt-2">
         <form #chatForm="ngForm" (ngSubmit)="send(chatForm)" class="input-ctnr d-flex">
-          <input type="text" class="form-control me-2" (keypress.enter)="send(chatForm)" name="text" required ngModel>
+          <input type="text" class="form-control me-2" (keypress.enter)="send(chatForm)" name="text" required ngModel autocomplete="off">
           <button class="btn btn-dark" type="submit" title="Send">
             <i class='bx bx-send'></i>
           </button>
