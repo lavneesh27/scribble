@@ -1,0 +1,31 @@
+<div class="container home-container">
+  <h1 class="logo">Scribble</h1>
+
+  <button class="btn btn-dark mb-3" (click)="openModal('create')">Create Room</button>
+  <button class="btn btn-outline-dark" (click)="openModal('join')">Join Room</button>
+</div>
+
+<ng-template #modalTemplate>
+  <div class="modal-body">
+    <h4 *ngIf="modalType === 'create'">Create Room</h4>
+    <h4 *ngIf="modalType === 'join'">Join Room</h4>
+
+    <form #createRoomForm="ngForm" *ngIf="modalType === 'create'"
+      (ngSubmit)="handleFormSubmit(createRoomForm, 'create')">
+      <input type="text" class="form-control mb-2" name="roomName" ngModel placeholder="Room Name" required />
+      <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-dark" [disabled]="!createRoomForm.valid">Create</button>
+      </div>
+    </form>
+
+    <form #joinRoomForm="ngForm" *ngIf="modalType === 'join'" (ngSubmit)="handleFormSubmit(joinRoomForm, 'join')">
+      <input type="text" class="form-control mb-2" name="roomId" ngModel placeholder="Room ID" required />
+      <input type="text" class="form-control mb-2" name="userName" ngModel placeholder="User Name" required />
+      <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-dark" [disabled]="!joinRoomForm.valid">
+          Join
+        </button>
+      </div>
+    </form>
+  </div>
+</ng-template>

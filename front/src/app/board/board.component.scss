@@ -1,0 +1,44 @@
+.whiteboard {
+    // width: 100%;
+    height: 468px;
+}
+
+::ng-deep .pen.svgroot {
+    border: 1px solid #dee2e6;
+    width: 100% !important;
+    border-radius: 0.375rem;
+}
+
+.custom-btn-grp,
+.custom-btn-grp .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chatbox {
+    // border: 2px solid #e0e0e0;
+    height: 468px;
+    padding: 10px;
+    border-radius: 0.375rem;
+}
+
+.players-container .list-group,
+.chatbox {
+    max-height: 468px;
+    overflow-y: auto;
+}
+
+.chat-container ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.info{
+    line-height: 10px;
+    position: relative;
+}
+.guessWord{
+    position-area: center;
+    font-size: 40px;
+}
